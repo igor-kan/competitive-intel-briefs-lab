@@ -23,6 +23,16 @@ def score_competitor(pricing: float, traffic: int, offer_breadth: int, reviews: 
     return round(score * 10, 2)
 
 
+def write_outreach_hooks(out: Path) -> None:
+    hooks = (
+        "# Outreach Hooks\n\n"
+        "1. I mapped your top competitors and built a practical counter-positioning brief.\n"
+        "2. Want the market gap summary and the fastest offer adjustments?\n"
+        "3. If this is not relevant, reply unsubscribe and I will stop outreach.\n"
+    )
+    (out / "outreach_hooks.md").write_text(hooks, encoding="utf-8")
+
+
 def main() -> None:
     args = parse_args()
     out = Path(args.output)
@@ -49,6 +59,7 @@ def main() -> None:
                     "offer_breadth": breadth,
                     "review_score": reviews,
                     "competitive_score": score,
+                    "stripe_link": "https://buy.stripe.com/intel-growth-placeholder",
                 }
             )
 
@@ -63,6 +74,7 @@ def main() -> None:
             "offer_breadth",
             "review_score",
             "competitive_score",
+            "stripe_link",
         ]
         writer = csv.DictWriter(f, fieldnames=fields)
         writer.writeheader()
@@ -83,17 +95,40 @@ def main() -> None:
             f"- Avg price: ${r['avg_price']}\n"
             f"- Monthly visitors: {r['monthly_visitors']}\n"
             f"- Offer breadth: {r['offer_breadth']}\n"
-            f"- Review score: {r['review_score']}\n\n"
+            f"- Review score: {r['review_score']}\n"
+            f"- Checkout: {r['stripe_link']}\n"
+            f"- Onboarding form: https://forms.gle/intel-onboarding-placeholder\n\n"
             f"## Recommended play\n"
-            f"- {action}\n"
+            f"- {action}\n\n"
+            "## Outreach hook\n"
+            "I can share a condensed market-gap brief and execution options this week.\n"
         )
         (out / f"brief_{slug}.md").write_text(md, encoding="utf-8")
 
-    summary = ["# Competitive Intel Summary", "", "Top priorities:"]
+    summary = [
+        "# Competitive Intel Summary",
+        "",
+        "Top priorities:",
+    ]
     for r in rows[:3]:
         summary.append(f"- Track and counter-position against {r['competitor_name']} (score {r['competitive_score']})")
+    summary.extend(
+        [
+            "",
+            "## Service packaging",
+            "- Starter: $249",
+            "- Growth: $699",
+            "- Operator: $1,299",
+            "",
+            "## Stripe links",
+            "- Starter: https://buy.stripe.com/intel-starter-placeholder",
+            "- Growth: https://buy.stripe.com/intel-growth-placeholder",
+            "- Operator: https://buy.stripe.com/intel-operator-placeholder",
+        ]
+    )
     (out / "summary.md").write_text("\n".join(summary), encoding="utf-8")
 
+    write_outreach_hooks(out)
     print(f"Generated {len(rows)} competitive briefs -> {out / 'competitive_table.csv'}")
 
 
